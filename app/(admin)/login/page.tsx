@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { THEME, LOGO_URL, SCHOOL_NAME, DEPARTMENT_NAME } from "@/lib/Theme";
 // import { createClient } from "@supabase/supabase-js";
-import { supabase } from "@/lib/Supabase";
+import { supabase } from "@/lib/supabase/client";
 
 
 /* ---------- Custom SVG icons ---------- */
@@ -52,7 +52,7 @@ export default function StaffLoginPage() {
       return;
     }
 
-    router.push("/admin/dashboard");
+    router.push("/dashboard");
     router.refresh();
   };
 
