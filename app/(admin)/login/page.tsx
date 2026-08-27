@@ -3,9 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { THEME, LOGO_URL, SCHOOL_NAME, DEPARTMENT_NAME } from "@/lib/Theme";
-// import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
-
 
 /* ---------- Custom SVG icons ---------- */
 
@@ -40,7 +38,6 @@ export default function StaffLoginPage() {
     }
 
     setLoading(true);
-    // const supabase = createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -48,7 +45,9 @@ export default function StaffLoginPage() {
     setLoading(false);
 
     if (signInError) {
-      setError("Incorrect email or password. Try again.");
+      // TEMPORARY: show the REAL error instead of a generic one
+      console.error("Supabase sign-in error:", signInError);
+      setError(`${signInError.message} (status: ${signInError.status ?? "n/a"})`);
       return;
     }
 
@@ -59,7 +58,6 @@ export default function StaffLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4" style={{ background: "#FAFAF7" }}>
       <div className="w-full max-w-sm">
-        {/* Brand */}
         <div className="mb-8 flex flex-col items-center text-center">
           <img
             src={LOGO_URL}
@@ -78,7 +76,6 @@ export default function StaffLoginPage() {
           </p>
         </div>
 
-        {/* Card */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-3 rounded-2xl border p-6"

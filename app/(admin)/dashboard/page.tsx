@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
             Notices Dashboard
           </h1>
           <Link
-            href="/admin/notices/new"
+            href="../notices/new/"
             className="rounded-md px-4 py-2 text-[13.5px] font-bold uppercase tracking-wide transition-opacity hover:opacity-90"
             style={{ background: THEME.accent, color: THEME.onPrimary }}
           >

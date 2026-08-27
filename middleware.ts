@@ -1,6 +1,9 @@
-// Place this file at the PROJECT ROOT (same level as package.json),
-// not inside src/ or app/ — Next.js requires middleware.ts at the root
-// (or src/middleware.ts if you used the src/ directory option).
+// Place at PROJECT ROOT (same level as package.json), or src/ if you
+// used the src/ directory option.
+//
+// Updated matcher: your actual routes have NO "/admin" prefix (you're
+// using a (admin) route GROUP, which organizes files without adding
+// a URL segment) — so we match the real paths directly instead.
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -29,10 +32,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Protect everything under /admin except the login page itself
-  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
-
-  if (isAdminRoute && !user) {
+  if (!user) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -40,6 +40,14 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+// Matches your REAL protected paths: /dashboard and everything under
+// it, plus /notices/new and /notices/*/edit. Deliberately does NOT
+// match a plain /notices/[slug] — that route (when you build it) is
+// the PUBLIC notice detail page and must stay open to everyone.
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/notices/new",
+    "/notices/:path*/edit",
+  ],
 };
