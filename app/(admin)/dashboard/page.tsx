@@ -22,11 +22,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 
 function formatDate(value: string | null) {
   if (!value) return "—";
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default async function AdminDashboardPage() {
@@ -39,14 +35,13 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#FAFAF7" }}>
-      {/* Top bar */}
       <div className="border-b" style={{ background: THEME.primary, borderColor: THEME.primaryDark }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
           <h1 className="text-[18px] font-bold tracking-tight" style={{ color: THEME.onPrimary }}>
             Notices Dashboard
           </h1>
           <Link
-            href="../notices/new/"
+            href="/notices/new"
             className="rounded-md px-4 py-2 text-[13.5px] font-bold uppercase tracking-wide transition-opacity hover:opacity-90"
             style={{ background: THEME.accent, color: THEME.onPrimary }}
           >
@@ -55,7 +50,6 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {error && (
           <p className="mb-4 text-[14px]" style={{ color: "#A32D2D" }}>
@@ -88,46 +82,25 @@ export default async function AdminDashboardPage() {
                 {(notices as unknown as NoticeRow[]).map((notice, i) => {
                   const style = STATUS_STYLES[notice.status] ?? STATUS_STYLES.draft;
                   return (
-                    <tr
-                      key={notice.id}
-                      style={{ borderTop: i === 0 ? "none" : "1px solid #E7E4DC" }}
-                    >
-                      <td className="px-4 py-3 font-medium" style={{ color: "#1F2430" }}>
-                        {notice.title}
-                      </td>
-                      <td className="px-4 py-3" style={{ color: "#5B5F73" }}>
-                        {notice.categories?.name ?? "—"}
-                      </td>
+                    <tr key={notice.id} style={{ borderTop: i === 0 ? "none" : "1px solid #E7E4DC" }}>
+                      <td className="px-4 py-3 font-medium" style={{ color: "#1F2430" }}>{notice.title}</td>
+                      <td className="px-4 py-3" style={{ color: "#5B5F73" }}>{notice.categories?.name ?? "—"}</td>
                       <td className="px-4 py-3">
-                        <span
-                          className="rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize"
-                          style={{ background: style.bg, color: style.text }}
-                        >
+                        <span className="rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize" style={{ background: style.bg, color: style.text }}>
                           {notice.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3" style={{ color: "#5B5F73" }}>
-                        {formatDate(notice.publish_at)}
-                      </td>
-                      <td className="px-4 py-3" style={{ color: "#5B5F73" }}>
-                        {formatDate(notice.expires_at)}
-                      </td>
+                      <td className="px-4 py-3" style={{ color: "#5B5F73" }}>{formatDate(notice.publish_at)}</td>
+                      <td className="px-4 py-3" style={{ color: "#5B5F73" }}>{formatDate(notice.expires_at)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-3">
-                          <Link
-                            href={`/admin/notices/${notice.id}/edit`}
-                            className="font-medium hover:opacity-70"
-                            style={{ color: THEME.primary }}
-                          >
+                          {/* FIXED: was /admin/notices/.../edit — no /admin prefix in your real routes */}
+                          <Link href={`/notices/${notice.id}/edit`} className="font-medium hover:opacity-70" style={{ color: THEME.primary }}>
                             Edit
                           </Link>
                           <form action={deleteNotice}>
                             <input type="hidden" name="id" value={notice.id} />
-                            <button
-                              type="submit"
-                              className="font-medium hover:opacity-70"
-                              style={{ color: "#A32D2D" }}
-                            >
+                            <button type="submit" className="font-medium hover:opacity-70" style={{ color: "#A32D2D" }}>
                               Delete
                             </button>
                           </form>

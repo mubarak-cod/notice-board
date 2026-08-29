@@ -1,4 +1,5 @@
 import { THEME } from "@/lib/Theme";
+import AttachmentUploader from "./AttachmentUploader";
 
 interface Category {
   id: string;
@@ -18,7 +19,6 @@ interface NoticeFormFieldsProps {
   };
 }
 
-// Converts a stored ISO timestamp to the format <input type="datetime-local"> expects
 function toDatetimeLocal(iso?: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -26,10 +26,7 @@ function toDatetimeLocal(iso?: string | null) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-const inputStyle = {
-  borderColor: "#D8D5CC",
-  color: "#1F2430",
-};
+const inputStyle = { borderColor: "#D8D5CC", color: "#1F2430" };
 
 export default function NoticeFormFields({ categories, defaultValues = {} }: NoticeFormFieldsProps) {
   return (
@@ -37,9 +34,7 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
       <label className="flex flex-col gap-1.5">
         <span className="text-[13px] font-semibold" style={{ color: "#1F2430" }}>Title</span>
         <input
-          name="title"
-          required
-          defaultValue={defaultValues.title}
+          name="title" required defaultValue={defaultValues.title}
           placeholder="e.g. First Semester Exam Timetable"
           className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
           style={inputStyle}
@@ -49,10 +44,7 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
       <label className="flex flex-col gap-1.5">
         <span className="text-[13px] font-semibold" style={{ color: "#1F2430" }}>Body</span>
         <textarea
-          name="body"
-          required
-          rows={8}
-          defaultValue={defaultValues.body}
+          name="body" required rows={8} defaultValue={defaultValues.body}
           placeholder="Write the full notice here..."
           className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none resize-y"
           style={inputStyle}
@@ -63,8 +55,7 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-semibold" style={{ color: "#1F2430" }}>Category</span>
           <select
-            name="category_id"
-            defaultValue={defaultValues.category_id ?? ""}
+            name="category_id" defaultValue={defaultValues.category_id ?? ""}
             className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
             style={inputStyle}
           >
@@ -78,8 +69,7 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-semibold" style={{ color: "#1F2430" }}>Status</span>
           <select
-            name="status"
-            defaultValue={defaultValues.status ?? "draft"}
+            name="status" defaultValue={defaultValues.status ?? "draft"}
             className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
             style={inputStyle}
           >
@@ -97,8 +87,7 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
             Publish date <span style={{ color: "#9a9890", fontWeight: 400 }}>(for scheduled notices)</span>
           </span>
           <input
-            type="datetime-local"
-            name="publish_at"
+            type="datetime-local" name="publish_at"
             defaultValue={toDatetimeLocal(defaultValues.publish_at)}
             className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
             style={inputStyle}
@@ -110,8 +99,7 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
             Expires <span style={{ color: "#9a9890", fontWeight: 400 }}>(optional)</span>
           </span>
           <input
-            type="datetime-local"
-            name="expires_at"
+            type="datetime-local" name="expires_at"
             defaultValue={toDatetimeLocal(defaultValues.expires_at)}
             className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
             style={inputStyle}
@@ -119,18 +107,12 @@ export default function NoticeFormFields({ categories, defaultValues = {} }: Not
         </label>
       </div>
 
-      <label className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <span className="text-[13px] font-semibold" style={{ color: "#1F2430" }}>
-          Attachment URL <span style={{ color: "#9a9890", fontWeight: 400 }}>(optional — paste a Cloudinary link)</span>
+          Attachment image <span style={{ color: "#9a9890", fontWeight: 400 }}>(optional)</span>
         </span>
-        <input
-          name="attachment_url"
-          defaultValue={defaultValues.attachment_url ?? ""}
-          placeholder="https://res.cloudinary.com/..."
-          className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
-          style={inputStyle}
-        />
-      </label>
+        <AttachmentUploader defaultValue={defaultValues.attachment_url} />
+      </div>
 
       <button
         type="submit"

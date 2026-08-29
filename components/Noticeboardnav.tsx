@@ -2,13 +2,11 @@
 import { useState } from "react";
 
 /* ---------- MAPOLY brand theme ---------- */
-/* Sampled from the school site: deep purple bar + orange accent.
-   Pull this into lib/theme.ts later if you want it shared site-wide. */
 const THEME = {
-  primary: "#42154B",      // header / nav bar background
-  primaryDark: "#33103A",  // hover / pressed shade
-  accent: "#FF8D27",       // CTA button + wordmark + notification dot
-  onPrimary: "#FFFFFF",    // text/icons sitting on the purple
+  primary: "#42154B",
+  primaryDark: "#33103A",
+  accent: "#FF8D27",
+  onPrimary: "#FFFFFF",
 };
 
 /* ---------- Custom SVG icons (hand-drawn, no icon library) ---------- */
@@ -57,10 +55,11 @@ interface NavLink {
   href: string;
 }
 
+// FIXED: these now point at your real pages instead of "#"
 const NAV_LINKS: NavLink[] = [
-  { label: "Home", href: "#" },
-  { label: "Notices", href: "#" },
-  { label: "About", href: "#" },
+  { label: "Home", href: "/" },
+  { label: "Notices", href: "/notices" },
+  { label: "About", href: "#" }, // still a placeholder — no About page built yet
 ];
 
 export default function NoticeBoardNav() {
@@ -74,7 +73,7 @@ export default function NoticeBoardNav() {
     >
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Logo + wordmark */}
-        <a href="#" className="flex items-center gap-3 shrink-0">
+        <a href="/" className="flex items-center gap-3 shrink-0">
           <img
             src="https://res.cloudinary.com/ddlnqthao/image/upload/v1787586978/a9d5c97b-f7ff-485d-9bb3-f8b6de23afc9.png"
             alt="School crest"
@@ -144,9 +143,9 @@ export default function NoticeBoardNav() {
             <BellIcon active />
           </button>
 
-          {/* Admin login — squared CTA in the brand orange */}
+          {/* Admin login */}
           <a
-            href="#"
+            href="/login"
             className="hidden sm:inline-flex items-center rounded-md px-5 py-2.5 text-[14px] font-bold uppercase tracking-wide transition-opacity hover:opacity-90"
             style={{ background: THEME.accent, color: THEME.onPrimary }}
           >
@@ -199,7 +198,7 @@ export default function NoticeBoardNav() {
           ))}
 
           <a
-            href="#"
+            href="/login"
             className="mt-2 inline-flex items-center justify-center rounded-md px-5 py-2.5 text-[14px] font-bold uppercase tracking-wide"
             style={{ background: THEME.accent, color: THEME.onPrimary }}
           >
