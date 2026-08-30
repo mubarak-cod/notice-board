@@ -1,8 +1,17 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { supabase } from "@/lib/supabase/client";
 
-/* ---------- Custom SVG icons (same hand-drawn set as the nav) ---------- */
+const THEME = {
+  primary: "#42154B",
+  primaryDark: "#33103A",
+  accent: "#FF8D27",
+  onPrimary: "#FFFFFF",
+  muted: "#C9AFD1",
+};
+
+const DEPARTMENT_NAME = "Computer Science";
 
 const MailIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,80 +22,86 @@ const MailIcon = () => (
 
 const CheckIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="9" cy="9" r="8.2" stroke="#2F6F5E" strokeWidth="1.4" />
-    <path d="M5.5 9.2 7.8 11.5 12.5 6.5" stroke="#2F6F5E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="9" cy="9" r="8.2" stroke={THEME.accent} strokeWidth="1.4" />
+    <path d="M5.5 9.2 7.8 11.5 12.5 6.5" stroke={THEME.accent} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-const DEPARTMENTS: string[] = [
-  "Computer Science",
-  "Engineering",
-  "Business Admin",
-  "Mass Communication",
-];
-
-/* ---------- Subscribe section ---------- */
-
 export default function SubscribeSection() {
   const [email, setEmail] = useState<string>("");
-  const [department, setDepartment] = useState<string>("");
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email) return;
-    // wire this up to your Supabase Subscription insert
+
+    setSubmitting(true);
+    setErrorMsg(null);
+
+    const { error } = await supabase.from("subscriptions").insert({ email });
+
+    setSubmitting(false);
+
+    if (error) {
+      // Unique constraint violation = they already subscribed —
+      // treat that as a success, not an error, from their point of view.
+      if (error.code === "23505") {
+        setSubmitted(true);
+        return;
+      }
+      console.error("Subscribe failed:", error);
+      setErrorMsg("Something went wrong. Try again in a moment.");
+      return;
+    }
+
     setSubmitted(true);
   };
 
   return (
-    <section
-      className="w-full border-y"
-      style={{ background: "#1F0631", borderColor: "#3D1259" }}
-    >
+    <section className="w-full border-y" style={{ background: THEME.primaryDark, borderColor: THEME.primary }}>
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-12">
-          {/* Copy */}
           <div>
             <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium"
-              style={{ background: "rgba(242,169,59,0.16)", color: "#F2A93B" }}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold uppercase tracking-wide"
+              style={{ background: "rgba(255,141,39,0.16)", color: THEME.accent }}
             >
               Never miss a notice
             </span>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl" style={{ color: "#FAFAF7" }}>
-              Get notified the moment your department posts something.
+            <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: THEME.onPrimary }}>
+              Get notified the moment {DEPARTMENT_NAME} posts something.
             </h2>
-            <p className="mt-3 max-w-md text-[14.5px] leading-relaxed" style={{ color: "#B9A9C7" }}>
-              No account needed. Drop your email, pick your department, and we&apos;ll
-              send you a heads-up only for what&apos;s actually relevant to you.
+            <p className="mt-3 max-w-md text-[14.5px] leading-relaxed" style={{ color: THEME.muted }}>
+              No account needed. Drop your email and we&apos;ll send you a
+              heads-up whenever a new {DEPARTMENT_NAME} notice goes live.
             </p>
           </div>
 
-          {/* Form / success state */}
-          <div
-            className="rounded-2xl border p-5 sm:p-6"
-            style={{ background: "#2E0846", borderColor: "#3D1259" }}
-          >
+          <div className="rounded-2xl border p-5 sm:p-6" style={{ background: THEME.primary, borderColor: "rgba(255,255,255,0.12)" }}>
             {submitted ? (
               <div className="flex items-center gap-3 py-3">
                 <CheckIcon />
                 <div>
-                  <p className="text-[14.5px] font-medium" style={{ color: "#FAFAF7" }}>
+                  <p className="text-[14.5px] font-semibold" style={{ color: THEME.onPrimary }}>
                     You&apos;re subscribed
                   </p>
-                  <p className="text-[13px]" style={{ color: "#B9A9C7" }}>
-                    We&apos;ll email you when a relevant notice goes live.
+                  <p className="text-[13px]" style={{ color: THEME.muted }}>
+                    We&apos;ll email you when a new notice goes live.
                   </p>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                {errorMsg && (
+                  <p className="text-[13px]" style={{ color: "#FF8D8D" }}>{errorMsg}</p>
+                )}
                 <div
                   className="flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5"
-                  style={{ background: "#1F0631", borderColor: "#45145F" }}
+                  style={{ background: THEME.primaryDark, borderColor: "rgba(255,255,255,0.14)" }}
                 >
-                  <span style={{ color: "#5B5F73" }}>
+                  <span style={{ color: THEME.muted }}>
                     <MailIcon />
                   </span>
                   <input
@@ -94,37 +109,22 @@ export default function SubscribeSection() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@student.edu"
-                    className="w-full bg-transparent text-[14px] outline-none placeholder:text-[#5B5F73]"
-                    style={{ color: "#FAFAF7" }}
+                    placeholder="you@student.mapoly.edu.ng"
+                    className="w-full bg-transparent text-[14px] outline-none"
+                    style={{ color: THEME.onPrimary }}
                   />
                 </div>
 
-                <select
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="rounded-xl border px-3.5 py-2.5 text-[14px] outline-none"
-                  style={{ background: "#1F0631", borderColor: "#45145F", color: department ? "#FAFAF7" : "#5B5F73" }}
-                >
-                  <option value="" disabled>
-                    Select your department
-                  </option>
-                  {DEPARTMENTS.map((d) => (
-                    <option key={d} value={d} style={{ color: "#1F2430" }}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-
                 <button
                   type="submit"
-                  className="mt-1 rounded-xl px-4 py-2.5 text-[14px] font-medium transition-opacity hover:opacity-90"
-                  style={{ background: "#F2A93B", color: "#FAFAF7" }}
+                  disabled={submitting}
+                  className="mt-1 rounded-xl px-4 py-2.5 text-[14px] font-bold uppercase tracking-wide transition-opacity hover:opacity-90 disabled:opacity-60"
+                  style={{ background: THEME.accent, color: THEME.onPrimary }}
                 >
-                  Subscribe
+                  {submitting ? "Subscribing..." : "Subscribe"}
                 </button>
 
-                <p className="text-center text-[12px]" style={{ color: "#5B5F73" }}>
+                <p className="text-center text-[12px]" style={{ color: THEME.muted }}>
                   You can unsubscribe anytime. No spam, just notices.
                 </p>
               </form>

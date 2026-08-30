@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -11,6 +12,49 @@ function slugify(title: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
   return `${base}-${Date.now().toString(36)}`;
+}
+
+async function notifySubscribers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  notice: { title: string; slug: string; body: string }
+) {
+  const { data: subs } = await supabase
+    .from("subscriptions")
+    .select("email")
+    .is("unsubscribed_at", null);
+
+  if (!subs || subs.length === 0) return;
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const noticeUrl = `${siteUrl}/notices/${notice.slug}`;
+  const snippet = notice.body.trim().slice(0, 140);
+
+  await Promise.all(
+    subs.map((s: { email: string }) =>
+      sendEmail({
+        to: s.email,
+        subject: `New notice: ${notice.title}`,
+        html: `
+          <p style="font-size:16px;font-weight:bold;">${notice.title}</p>
+          <p style="color:#555;">${snippet}${notice.body.length > 140 ? "..." : ""}</p>
+          <p><a href="${noticeUrl}">Read the full notice →</a></p>
+        `,
+      })
+    )
+  );
+}
+
+// Wraps notifySubscribers so a network/DNS/Resend failure NEVER
+// breaks the actual notice save — it just logs and moves on.
+async function notifySubscribersSafely(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  notice: { title: string; slug: string; body: string }
+) {
+  try {
+    await notifySubscribers(supabase, notice);
+  } catch (err) {
+    console.error("Email notification failed (notice was still saved fine):", err);
+  }
 }
 
 export async function saveNotice(formData: FormData) {
@@ -30,7 +74,15 @@ export async function saveNotice(formData: FormData) {
   const expiresAt = expiresAtRaw ? new Date(expiresAtRaw).toISOString() : null;
 
   if (id) {
-    await supabase
+    const { data: existing } = await supabase
+      .from("notices")
+      .select("status")
+      .eq("id", id)
+      .single();
+
+    const wasAlreadyPublished = existing?.status === "published";
+
+    const { error: updateError } = await supabase
       .from("notices")
       .update({
         title, body, category_id: categoryId, attachment_url: attachmentUrl,
@@ -38,10 +90,22 @@ export async function saveNotice(formData: FormData) {
       })
       .eq("id", id);
 
+    if (updateError) {
+      console.error("Update failed:", updateError);
+      throw new Error(`Failed to update notice: ${updateError.message}`);
+    }
+
     await supabase.from("audit_log").insert({ notice_id: id, admin_id: user.id, action: "edited" });
+
+    if (status === "published" && !wasAlreadyPublished) {
+      const { data: slugRow } = await supabase.from("notices").select("slug").eq("id", id).single();
+      if (slugRow) {
+        await notifySubscribersSafely(supabase, { title, slug: slugRow.slug, body });
+      }
+    }
   } else {
     const slug = slugify(title);
-    const { data: inserted } = await supabase
+    const { data: inserted, error: insertError } = await supabase
       .from("notices")
       .insert({
         title, slug, body, category_id: categoryId, attachment_url: attachmentUrl,
@@ -50,13 +114,20 @@ export async function saveNotice(formData: FormData) {
       .select("id")
       .single();
 
+    if (insertError) {
+      console.error("Insert failed:", insertError);
+      throw new Error(`Failed to save notice: ${insertError.message}`);
+    }
+
     if (inserted) {
       await supabase.from("audit_log").insert({ notice_id: inserted.id, admin_id: user.id, action: "created" });
+
+      if (status === "published") {
+        await notifySubscribersSafely(supabase, { title, slug, body });
+      }
     }
   }
 
-  // FIXED: your real route is /dashboard (via the (admin) route group),
-  // not /admin/dashboard
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import NotificationBell from "@/components/NotificationBell";
 
 /* ---------- MAPOLY brand theme ---------- */
 const THEME = {
@@ -35,19 +36,6 @@ const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-interface BellIconProps {
-  active?: boolean;
-}
-
-const BellIcon = ({ active }: BellIconProps) => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 2.5c-2.4 0-4.2 1.9-4.2 4.3v2.4c0 .6-.3 1.5-.7 2l-.9 1.1c-.6.8-.2 2 .8 2.2 2.9.6 6 .6 8.9 0 .9-.2 1.4-1.4.8-2.2l-.9-1.1c-.4-.5-.7-1.4-.7-2V6.8c0-2.4-1.9-4.3-4.2-4.3-.1 0 0 0 0 0Z"
-      stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-    <path d="M8.1 16.7a1.9 1.9 0 0 0 3.7 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    {active && <circle cx="14.8" cy="4.6" r="2.6" fill={THEME.accent} stroke={THEME.primary} strokeWidth="1.5" />}
-  </svg>
-);
-
 /* ---------- Nav ---------- */
 
 interface NavLink {
@@ -55,7 +43,6 @@ interface NavLink {
   href: string;
 }
 
-// FIXED: these now point at your real pages instead of "#"
 const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "Notices", href: "/notices" },
@@ -134,14 +121,8 @@ export default function NoticeBoardNav() {
             )}
           </div>
 
-          {/* Notification bell */}
-          <button
-            aria-label="Notifications"
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10"
-            style={{ color: THEME.onPrimary }}
-          >
-            <BellIcon active />
-          </button>
+          {/* Notification bell — now the REAL live-updating one */}
+          <NotificationBell />
 
           {/* Admin login */}
           <a

@@ -1,14 +1,11 @@
-// Place at PROJECT ROOT (same level as package.json), or src/ if you
-// used the src/ directory option.
-//
-// Updated matcher: your actual routes have NO "/admin" prefix (you're
-// using a (admin) route GROUP, which organizes files without adding
-// a URL segment) — so we match the real paths directly instead.
+// RENAMED from middleware.ts per Next.js 16's convention change.
+// Delete your old middleware.ts after adding this file — having
+// both can cause conflicts.
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -40,10 +37,6 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Matches your REAL protected paths: /dashboard and everything under
-// it, plus /notices/new and /notices/*/edit. Deliberately does NOT
-// match a plain /notices/[slug] — that route (when you build it) is
-// the PUBLIC notice detail page and must stay open to everyone.
 export const config = {
   matcher: [
     "/dashboard/:path*",
