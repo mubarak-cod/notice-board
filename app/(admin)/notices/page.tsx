@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { THEME } from "@/lib/Theme";
 import NoticeCard from "@/components/public/NoticeCard";
 
+export const dynamic = "force-dynamic";
+
 function snippet(body: string, length = 120) {
   const trimmed = body.trim();
   return trimmed.length > length ? trimmed.slice(0, length) + "..." : trimmed;

@@ -6,6 +6,9 @@ import WhyDigital from "@/components/Whydigital";
 import SubscribeSection from "@/components/Subscribesection";
 import SiteFooter from "@/components/Sitefooter";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function Home() {
   return (
     <div>

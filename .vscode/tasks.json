@@ -1,0 +1,54 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build project",
+			"type": "shell",
+			"command": "npm run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Bypass PS policy and build",
+			"type": "shell",
+			"command": "powershell -ExecutionPolicy Bypass -NoProfile -Command \"Set-Location 'C:/Users/LENOVO/Desktop/notice-board'; npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Test cmd shell",
+			"type": "shell",
+			"command": "cmd /c \"echo hello\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build via cmd",
+			"type": "shell",
+			"command": "cmd /c \"cd /d C:\\Users\\LENOVO\\Desktop\\notice-board && npm run build\"",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build via cmd with forward slashes",
+			"type": "shell",
+			"command": "cmd /c \"cd /d C:/Users/LENOVO/Desktop/notice-board && npm.cmd run build\"",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		}
+	]
+}

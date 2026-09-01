@@ -37,6 +37,11 @@ export default function StaffLoginPage() {
       return;
     }
 
+    if (!supabase) {
+      setError("Supabase is not configured for this environment.");
+      return;
+    }
+
     setLoading(true);
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,

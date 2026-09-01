@@ -25,7 +25,13 @@ async function notifySubscribers(
 
   if (!subs || subs.length === 0) return;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!siteUrl) {
+    console.warn("NEXT_PUBLIC_SITE_URL is not set; skipping notice email links.");
+    return;
+  }
+
   const noticeUrl = `${siteUrl}/notices/${notice.slug}`;
   const snippet = notice.body.trim().slice(0, 140);
 

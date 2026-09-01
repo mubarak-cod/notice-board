@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/lib/supabase/client";
 import { THEME } from "@/lib/Theme";
 
@@ -12,14 +13,16 @@ interface NoticeAlert {
   created_at: string;
 }
 
+const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+
 export default function NotificationBell() {
   const [notices, setNotices] = useState<NoticeAlert[]>([]);
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(true);
 
   useEffect(() => {
-    // Listens for LIVE database changes — no polling, no refresh needed.
-    // Fires the instant an admin publishes (or edits into) "published" status.
+    if (!supabase) return;
+
     const channel = supabase
       .channel("public-notices-feed")
       .on(
@@ -50,7 +53,9 @@ export default function NotificationBell() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
@@ -72,30 +77,36 @@ export default function NotificationBell() {
         </svg>
       </button>
 
-      {open && (
-        <div
-          className="absolute right-0 top-12 z-50 w-72 rounded-xl border py-2 shadow-lg"
-          style={{ background: "#FFFFFF", borderColor: "#E7E4DC" }}
-        >
-          <p className="px-3.5 pb-2 text-[12px] font-semibold uppercase tracking-wide" style={{ color: "#5B5F73" }}>
-            Recent notices
-          </p>
-          {notices.length === 0 && (
-            <p className="px-3.5 py-3 text-[13px]" style={{ color: "#5B5F73" }}>No new notices yet.</p>
-          )}
-          {notices.map((n) => (
-            <Link
-              key={n.id}
-              href={`/notices/${n.slug}`}
-              onClick={() => setOpen(false)}
-              className="block px-3.5 py-2.5 text-[13.5px] hover:bg-black/[0.03]"
-              style={{ color: "#1F2430" }}
-            >
-              {n.title}
-            </Link>
-          ))}
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: -8 }}
+            transition={{ duration: 0.2, ease: easeOutExpo }}
+            className="absolute right-0 top-12 z-50 w-72 rounded-xl border py-2 shadow-lg"
+            style={{ originX: 1, originY: 0, background: "#FFFFFF", borderColor: "#E7E4DC" }}
+          >
+            <p className="px-3.5 pb-2 text-[12px] font-semibold uppercase tracking-wide" style={{ color: "#5B5F73" }}>
+              Recent notices
+            </p>
+            {notices.length === 0 && (
+              <p className="px-3.5 py-3 text-[13px]" style={{ color: "#5B5F73" }}>No new notices yet.</p>
+            )}
+            {notices.map((n) => (
+              <Link
+                key={n.id}
+                href={`/notices/${n.slug}`}
+                onClick={() => setOpen(false)}
+                className="block px-3.5 py-2.5 text-[13.5px] hover:bg-black/3"
+                style={{ color: "#1F2430" }}
+              >
+                {n.title}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { THEME } from "@/lib/Theme";
 
+export const dynamic = "force-dynamic";
+
 interface NoticeDetailPageProps {
   params: Promise<{ slug: string }>;
 }

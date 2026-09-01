@@ -4,6 +4,8 @@ import { THEME } from "@/lib/Theme";
 import { saveNotice } from "../action";
 import NoticeFormFields from "@/components/admin/NoticeFormFields";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewNoticePage() {
   const supabase = await createClient();
   const { data: categories } = await supabase
@@ -15,7 +17,7 @@ export default async function NewNoticePage() {
     <div className="min-h-screen" style={{ background: "#FAFAF7" }}>
       <div className="border-b" style={{ background: THEME.primary, borderColor: THEME.primaryDark }}>
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-5 sm:px-6">
-          <Link href="/admin/dashboard" className="text-[13px] font-medium" style={{ color: THEME.muted }}>
+          <Link href="/dashboard" className="text-[13px] font-medium" style={{ color: THEME.muted }}>
             ← Dashboard
           </Link>
         </div>

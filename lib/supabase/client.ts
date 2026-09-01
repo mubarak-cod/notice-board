@@ -1,24 +1,32 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("Supabase browser env vars are missing; browser client is unavailable.");
+    return null;
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+}
+
 /*
  * Single shared Supabase client for the browser.
  *
- * IMPORTANT: this uses createBrowserClient from @supabase/ssr, NOT
- * createClient from @supabase/supabase-js. The plain supabase-js
- * client stores the session in localStorage, which your server
- * (middleware, Server Actions) can never read. createBrowserClient
- * stores the session in COOKIES instead, which is what lets your
- * server-side code actually know who's logged in.
- *
- * Needs NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in
- * .env.local — both come from Supabase dashboard: Settings → API.
+ * The client is created defensively so build-time prerendering cannot crash when
+ * these public env vars are temporarily absent.
  */
-export const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export const supabase = getSupabaseClient();
 
 // Alias, in case anything else in the project imports { createClient }
 export function createClient() {
-  return supabase;
+  const client = getSupabaseClient();
+
+  if (!client) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  }
+
+  return client;
 }

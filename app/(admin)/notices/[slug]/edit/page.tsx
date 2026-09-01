@@ -8,15 +8,15 @@ import NoticeFormFields from "@/components/admin/NoticeFormFields";
 export const dynamic = "force-dynamic";
 
 interface EditNoticePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function EditNoticePage({ params }: EditNoticePageProps) {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
 
   const [{ data: notice }, { data: categories }] = await Promise.all([
-    supabase.from("notices").select("*").eq("id", id).single(),
+    supabase.from("notices").select("*").eq("id", slug).single(),
     supabase.from("categories").select("id, name").order("name"),
   ]);
 
