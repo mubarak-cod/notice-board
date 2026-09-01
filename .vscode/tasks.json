@@ -49,6 +49,75 @@
 				"$tsc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Build project check",
+			"type": "shell",
+			"command": "npm run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "node smoke",
+			"type": "shell",
+			"command": "cmd /c \"node -e \\\"console.log('hello')\\\"\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Query Supabase notices",
+			"type": "shell",
+			"command": "cmd /c \"node -e \\\"fetch('https://wfmyvylmjepxovtbesvt.supabase.co/rest/v1/notices?select=id,title,status,publish_at,expires_at,created_at,slug&order=created_at.desc&limit=5',{headers:{apikey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmbXl2eWxtamVweG92dGJlc3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NDE1NTEsImV4cCI6MjEwMzMxNzU1MX0.GM6v8GenoHSUEcAEUKKaMBE1DtySH5F4rb34wUovQSY',Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmbXl2eWxtamVweG92dGJlc3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NDE1NTEsImV4cCI6MjEwMzMxNzU1MX0.GM6v8GenoHSUEcAEUKKaMBE1DtySH5F4rb34wUovQSY','Content-Type':'application/json'}}).then(r=>r.text()).then(t=>console.log(t)).catch(e=>{console.error(e);process.exit(1);})\\\"\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "DB query test",
+			"type": "shell",
+			"command": "cmd /c \"node -e \\\"console.log(123);\\\"\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Inspect live notices via REST",
+			"type": "shell",
+			"command": "cmd /c \"node -e \\\"const url='https://wfmyvylmjepxovtbesvt.supabase.co/rest/v1/notices'; const key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmbXl2eWxtamVweG92dGJlc3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NDE1NTEsImV4cCI6MjEwMzMxNzU1MX0.GM6v8GenoHSUEcAEUKKaMBE1DtySH5F4rb34wUovQSY'; fetch(url+'?select=id,title,status,publish_at,expires_at,created_at,slug&order=created_at.desc&limit=10',{headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'}}).then(async(res)=>{const text = await res.text(); console.log('status', res.status); console.log(text);}).catch(err=>{console.error(err); process.exit(1);});\\\"\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build validation",
+			"type": "shell",
+			"command": "cmd /c \"cd /d C:\\Users\\LENOVO\\Desktop\\notice-board && npm.cmd run build\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Project build verification",
+			"type": "shell",
+			"command": "cd /d C:\\Users\\LENOVO\\Desktop\\notice-board && npm.cmd run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
 		}
 	]
 }

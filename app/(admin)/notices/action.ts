@@ -14,6 +14,17 @@ function slugify(title: string) {
   return `${base}-${Date.now().toString(36)}`;
 }
 
+function toUtcIsoOrNull(value: FormDataEntryValue | string | null | undefined) {
+  if (value == null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toISOString();
+}
+
 async function notifySubscribers(
   supabase: Awaited<ReturnType<typeof createClient>>,
   notice: { title: string; slug: string; body: string }
@@ -74,10 +85,8 @@ export async function saveNotice(formData: FormData) {
   const categoryId = (formData.get("category_id") as string) || null;
   const attachmentUrl = (formData.get("attachment_url") as string) || null;
   const status = formData.get("status") as string;
-  const publishAtRaw = formData.get("publish_at") as string;
-  const expiresAtRaw = formData.get("expires_at") as string;
-  const publishAt = publishAtRaw ? new Date(publishAtRaw).toISOString() : null;
-  const expiresAt = expiresAtRaw ? new Date(expiresAtRaw).toISOString() : null;
+  const publishAt = toUtcIsoOrNull(formData.get("publish_at"));
+  const expiresAt = toUtcIsoOrNull(formData.get("expires_at"));
 
   if (id) {
     const { data: existing } = await supabase

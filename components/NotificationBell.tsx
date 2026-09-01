@@ -20,8 +20,35 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(true);
 
+  const mergeRecentNotice = (row: { id: string; title: string; slug: string; status: string; created_at: string }) => {
+    if (row.status !== "published") return;
+
+    setNotices((prev) => {
+      if (prev.some((n) => n.id === row.id)) return prev;
+      return [{ id: row.id, title: row.title, slug: row.slug, created_at: row.created_at }, ...prev].slice(0, 10);
+    });
+    setSeen(false);
+  };
+
   useEffect(() => {
     if (!supabase) return;
+
+    const loadRecentNotices = async () => {
+      const nowIso = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("notices")
+        .select("id, title, slug, status, created_at")
+        .eq("status", "published")
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (!error && data) {
+        setNotices(data.map((row) => ({ id: row.id, title: row.title, slug: row.slug, created_at: row.created_at })));
+      }
+    };
+
+    loadRecentNotices();
 
     const channel = supabase
       .channel("public-notices-feed")
@@ -30,10 +57,7 @@ export default function NotificationBell() {
         { event: "INSERT", schema: "public", table: "notices" },
         (payload) => {
           const row = payload.new as { id: string; title: string; slug: string; status: string; created_at: string };
-          if (row.status === "published") {
-            setNotices((prev) => [{ id: row.id, title: row.title, slug: row.slug, created_at: row.created_at }, ...prev].slice(0, 10));
-            setSeen(false);
-          }
+          mergeRecentNotice(row);
         }
       )
       .on(
@@ -41,18 +65,17 @@ export default function NotificationBell() {
         { event: "UPDATE", schema: "public", table: "notices" },
         (payload) => {
           const row = payload.new as { id: string; title: string; slug: string; status: string; created_at: string };
-          if (row.status === "published") {
-            setNotices((prev) => {
-              if (prev.find((n) => n.id === row.id)) return prev;
-              return [{ id: row.id, title: row.title, slug: row.slug, created_at: row.created_at }, ...prev].slice(0, 10);
-            });
-            setSeen(false);
-          }
+          mergeRecentNotice(row);
         }
       )
       .subscribe();
 
+    const poller = window.setInterval(() => {
+      void loadRecentNotices();
+    }, 30000);
+
     return () => {
+      window.clearInterval(poller);
       if (supabase) {
         supabase.removeChannel(channel);
       }
