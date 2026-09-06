@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { THEME } from "@/lib/Theme";
 import DashboardOverview, { type NoticeRow } from "@/components/admin/DashboardOverview";
+import LogoutButton from "@/components/admin/LogoutButton";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +26,16 @@ export default async function AdminDashboardPage() {
               Notices Dashboard
             </h1>
           </div>
-          <Link
-            href="/notices/new"
-            className="rounded-md px-4 py-2 text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90"
-            style={{ background: THEME.accent, color: THEME.onPrimary }}
-          >
-            + New notice
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/notices/new"
+              className="rounded-md px-4 py-2 text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90"
+              style={{ background: THEME.accent, color: THEME.onPrimary }}
+            >
+              + New notice
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
       </div>
 

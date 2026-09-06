@@ -1,6 +1,8 @@
 "use client";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import NotificationBell from "@/components/NotificationBell";
+import { supabase } from "@/lib/supabase/client";
 
 /* ---------- MAPOLY brand theme ---------- */
 const THEME = {
@@ -36,6 +38,64 @@ const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+interface SearchResult {
+  slug: string;
+  title: string;
+}
+
+interface NoticeSearchProps {
+  value: string;
+  results: SearchResult[];
+  loading: boolean;
+  onChange: (value: string) => void;
+  mobile?: boolean;
+}
+
+function NoticeSearch({ value, results, loading, onChange, mobile = false }: NoticeSearchProps) {
+  const hasSearch = value.trim().length > 0;
+
+  return (
+    <div className={`relative ${mobile ? "w-full" : "w-50"}`}>
+      <div
+        className="flex items-center gap-2 rounded-full border px-3 py-1.5"
+        style={{ borderColor: "rgba(255,255,255,0.35)" }}
+      >
+        <SearchIcon style={{ color: THEME.onPrimary }} />
+        <input
+          autoFocus={!mobile}
+          value={value}
+          placeholder="Search notices..."
+          className={`w-full bg-transparent outline-none ${mobile ? "text-[14px]" : "text-[13.5px]"}`}
+          style={{ color: THEME.onPrimary }}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
+
+      {hasSearch && (
+        <div
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-xl border py-1 shadow-lg"
+          style={{ background: "#FFFFFF", borderColor: "#E7E4DC" }}
+        >
+          {loading && <p className="px-3.5 py-3 text-[13px]" style={{ color: "#5B5F73" }}>Searching...</p>}
+          {!loading && results.length === 0 && (
+            <p className="px-3.5 py-3 text-[13px]" style={{ color: "#5B5F73" }}>No notices found</p>
+          )}
+          {!loading && results.map((result) => (
+            <Link
+              key={result.slug}
+              href={`/notices/${result.slug}`}
+              className="block px-3.5 py-2.5 text-[13.5px] hover:bg-black/5"
+              style={{ color: "#1F2430" }}
+            >
+              {result.title}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------- Nav ---------- */
 
 interface NavLink {
@@ -52,6 +112,47 @@ const NAV_LINKS: NavLink[] = [
 export default function NoticeBoardNav() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  useEffect(() => {
+    const term = searchTerm.trim().replace(/[%,()_]/g, " ").replace(/\s+/g, " ").slice(0, 80);
+    if (!term || !supabase) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    const client = supabase;
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true);
+      const nowIso = new Date().toISOString();
+      const { data, error } = await client
+        .from("notices")
+        .select("slug, title")
+        .eq("status", "published")
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+        .or(`title.ilike.%${term}%,body.ilike.%${term}%`)
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      if (!cancelled) {
+        setSearchResults(error || !data ? [] : data);
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
+  function updateSearchTerm(value: string) {
+    setSearchTerm(value);
+  }
 
   return (
     <header
@@ -96,19 +197,12 @@ export default function NoticeBoardNav() {
           {/* Search */}
           <div className="hidden sm:flex items-center">
             {searchOpen ? (
-              <div
-                className="flex items-center gap-2 rounded-full border px-3 py-1.5 transition-all"
-                style={{ borderColor: "rgba(255,255,255,0.35)", width: 200 }}
-              >
-                <SearchIcon style={{ color: THEME.onPrimary }} />
-                <input
-                  autoFocus
-                  placeholder="Search notices..."
-                  className="w-full bg-transparent text-[13.5px] outline-none"
-                  style={{ color: THEME.onPrimary }}
-                  onBlur={() => setSearchOpen(false)}
-                />
-              </div>
+              <NoticeSearch
+                value={searchTerm}
+                results={searchResults}
+                loading={searchLoading}
+                onChange={updateSearchTerm}
+              />
             ) : (
               <button
                 aria-label="Search"
@@ -156,14 +250,14 @@ export default function NoticeBoardNav() {
       >
         <div className="flex flex-col gap-1 px-4 py-3">
           <div
-            className="mb-2 flex items-center gap-2 rounded-full border px-3 py-2"
-            style={{ borderColor: "rgba(255,255,255,0.3)" }}
+            className="relative z-10 mb-2"
           >
-            <SearchIcon style={{ color: THEME.onPrimary }} />
-            <input
-              placeholder="Search notices..."
-              className="w-full bg-transparent text-[14px] outline-none"
-              style={{ color: THEME.onPrimary }}
+            <NoticeSearch
+              value={searchTerm}
+              results={searchResults}
+              loading={searchLoading}
+              onChange={updateSearchTerm}
+              mobile
             />
           </div>
 

@@ -17,7 +17,7 @@ export default async function NoticeFeedSection() {
 
   const { data: notices, error } = await supabase
     .from("notices")
-    .select("slug, title, body, attachment_url, created_at, categories(name)")
+    .select("slug, title, body, attachment_url, created_at, expires_at, categories(name)")
     .eq("status", "published")
     .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
     .order("created_at", { ascending: false })
@@ -72,6 +72,7 @@ export default async function NoticeFeedSection() {
             categoryName={(n.categories as unknown as { name: string } | null)?.name}
             date={n.created_at}
             attachmentUrl={n.attachment_url}
+            expiresAt={n.expires_at}
           />
         ))}
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { THEME } from "@/lib/Theme";
+import NoticeCountdown from "./NoticeCountdown";
 
 interface NoticeCardProps {
   slug: string;
@@ -8,18 +9,19 @@ interface NoticeCardProps {
   categoryName?: string | null;
   date: string;
   attachmentUrl?: string | null;
+  expiresAt?: string | null;
 }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function NoticeCard({ slug, title, bodySnippet, categoryName, date, attachmentUrl }: NoticeCardProps) {
+export default function NoticeCard({ slug, title, bodySnippet, categoryName, date, attachmentUrl, expiresAt }: NoticeCardProps) {
   return (
     <Link
       href={`/notices/${slug}`}
-      className="flex flex-col gap-3 rounded-2xl border p-5 transition-shadow hover:shadow-md"
-      style={{ borderColor: "#E7E4DC", background: "#FFFFFF" }}
+      className="flex flex-col gap-3 rounded-2xl border p-5 shadow-[0_12px_30px_rgba(66,21,75,0.06)] transition-shadow hover:shadow-[0_18px_38px_rgba(66,21,75,0.13)]"
+      style={{ borderColor: "#E7E4DC", background: "linear-gradient(145deg, #FFFFFF 0%, #FFFDFC 62%, #FFF7EF 100%)" }}
     >
       {attachmentUrl && (
         <img src={attachmentUrl} alt="" className="h-36 w-full rounded-lg object-cover" />
@@ -35,6 +37,7 @@ export default function NoticeCard({ slug, title, bodySnippet, categoryName, dat
         )}
         <span className="text-[12px]" style={{ color: "#9a9890" }}>{formatDate(date)}</span>
       </div>
+      <NoticeCountdown expiresAt={expiresAt} />
       <h3 className="text-[16px] font-bold leading-snug" style={{ color: THEME.primary }}>
         {title}
       </h3>

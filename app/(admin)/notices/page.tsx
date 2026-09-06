@@ -1,13 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { THEME } from "@/lib/Theme";
-import NoticeCard from "@/components/public/NoticeCard";
+import NoticeCategoryFilter from "@/components/public/NoticeCategoryFilter";
 
 export const dynamic = "force-dynamic";
-
-function snippet(body: string, length = 120) {
-  const trimmed = body.trim();
-  return trimmed.length > length ? trimmed.slice(0, length) + "..." : trimmed;
-}
 
 export default async function AllNoticesPage() {
   const supabase = await createClient();
@@ -15,7 +10,7 @@ export default async function AllNoticesPage() {
 
   const { data: notices, error } = await supabase
     .from("notices")
-    .select("slug, title, body, attachment_url, created_at, categories(name)")
+    .select("slug, title, body, attachment_url, created_at, expires_at, categories(name)")
     .eq("status", "published")
     .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
     .order("created_at", { ascending: false });
@@ -47,19 +42,10 @@ export default async function AllNoticesPage() {
           </div>
         )}
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {notices?.map((n) => (
-            <NoticeCard
-              key={n.slug}
-              slug={n.slug}
-              title={n.title}
-              bodySnippet={snippet(n.body)}
-              categoryName={(n.categories as unknown as { name: string } | null)?.name}
-              date={n.created_at}
-              attachmentUrl={n.attachment_url}
-            />
-          ))}
-        </div>
+        <NoticeCategoryFilter notices={(notices ?? []).map((notice) => ({
+          ...notice,
+          categories: (notice.categories as unknown as { name: string } | null),
+        }))} />
       </div>
     </div>
   );

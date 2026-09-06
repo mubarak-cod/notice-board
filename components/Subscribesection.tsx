@@ -101,7 +101,7 @@ export default function SubscribeSection() {
 
   return (
     <>
-      <section className="w-full border-y" style={{ background: THEME.primaryDark, borderColor: THEME.primary }}>
+      <section id="subscribe" className="w-full border-y" style={{ background: THEME.primaryDark, borderColor: THEME.primary }}>
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
           <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-12">
             <div>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { THEME } from "@/lib/Theme";
+import NoticeCountdown from "@/components/public/NoticeCountdown";
+import ShareNoticeButton from "@/components/public/ShareNoticeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -51,9 +53,17 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
           </span>
         </div>
 
+        <div className="mt-4">
+          <NoticeCountdown expiresAt={notice.expires_at} />
+        </div>
+
         <h1 className="mt-3 text-2xl font-extrabold leading-snug sm:text-3xl" style={{ color: THEME.primary }}>
           {notice.title}
         </h1>
+
+        <div className="mt-5">
+          <ShareNoticeButton title={notice.title} />
+        </div>
 
         {notice.attachment_url && (
           <img

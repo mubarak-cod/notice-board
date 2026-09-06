@@ -1,6 +1,7 @@
 import NoticeBoardNav from "@/components/Noticeboardnav";
 import Hero from "@/components/Hero";
 import NoticeFeedSection from "@/components/public/NoticeFeedSection";
+import AboutMapoly from "@/components/AboutMapoly";
 import HowItWorks from "@/components/HowItWorks";
 import WhyDigital from "@/components/Whydigital";
 import SubscribeSection from "@/components/Subscribesection";
@@ -15,6 +16,7 @@ export default function Home() {
       <NoticeBoardNav />
       <Hero />
       <NoticeFeedSection />
+      <AboutMapoly />
       <HowItWorks />
       <WhyDigital />
       <SubscribeSection />

@@ -32,10 +32,11 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (!supabase) return;
+    const client = supabase;
 
     const loadRecentNotices = async () => {
       const nowIso = new Date().toISOString();
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from("notices")
         .select("id, title, slug, status, created_at")
         .eq("status", "published")
@@ -50,7 +51,7 @@ export default function NotificationBell() {
 
     loadRecentNotices();
 
-    const channel = supabase
+    const channel = client
       .channel("public-notices-feed")
       .on(
         "postgres_changes",
