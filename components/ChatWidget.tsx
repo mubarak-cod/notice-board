@@ -11,6 +11,18 @@ interface ChatMessage {
 const GREETING_TEXT =
   "\u{1F44B} Hi, I'm MapBot, built by Sanni Basit and coursemates for our final year project. I can help with notices, department info, or how this site works. What can I help with?";
 
+const TOOLTIP_SEEN_KEY = "mapbot_tooltip_seen";
+const TOOLTIP_DELAY_MS = 2500;
+const TOOLTIP_TEXT = "Have a question about a notice or the department? I'm here to help.";
+
+const TypingDots = () => (
+  <span className="flex items-center gap-1 px-1 py-1" aria-label="MapBot is typing">
+    <span className="mapbot-dot" style={{ animationDelay: "0ms" }} />
+    <span className="mapbot-dot" style={{ animationDelay: "150ms" }} />
+    <span className="mapbot-dot" style={{ animationDelay: "300ms" }} />
+  </span>
+);
+
 const ChatIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M5.2 17.7 4 21l3.5-1.5c1.1.5 2.3.7 3.6.7 4.9 0 8.9-3.4 8.9-7.6S16 5 11.1 5 2.2 8.4 2.2 12.6c0 2 .9 3.8 3 5.1Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
@@ -37,7 +49,26 @@ export default function ChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
+
+  // First-visit callout: shows once, ever, after a short delay,
+  // unless the visitor has already seen it or already opened the chat.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const alreadySeen = window.localStorage.getItem(TOOLTIP_SEEN_KEY);
+    if (alreadySeen || open) return;
+
+    const timer = setTimeout(() => setShowTooltip(true), TOOLTIP_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [open]);
+
+  function dismissTooltip() {
+    setShowTooltip(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(TOOLTIP_SEEN_KEY, "true");
+    }
+  }
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -171,7 +202,7 @@ export default function ChatWidget() {
                     ? { background: THEME.accent, color: THEME.onPrimary, borderBottomRightRadius: 5 }
                     : { background: THEME.primary, color: THEME.onPrimary, borderBottomLeftRadius: 5 }}
                 >
-                  {item.content || "..."}
+                  {item.content ? item.content : <TypingDots />}
                 </p>
               </div>
             ))}
@@ -200,15 +231,74 @@ export default function ChatWidget() {
         </section>
       )}
 
+      {showTooltip && !open && (
+        <div
+          className="absolute bottom-[calc(100%+12px)] right-0 w-56 rounded-2xl px-4 py-3 shadow-lg mapbot-tooltip-in"
+          style={{ background: THEME.primary, color: THEME.onPrimary }}
+        >
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={dismissTooltip}
+            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+            style={{ background: THEME.accent, color: THEME.onPrimary }}
+          >
+            ✕
+          </button>
+          <p className="text-[13px] font-semibold leading-snug">MapBot</p>
+          <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: THEME.muted }}>
+            {TOOLTIP_TEXT}
+          </p>
+          <span
+            className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45"
+            style={{ background: THEME.primary }}
+            aria-hidden="true"
+          />
+        </div>
+      )}
+
       <button
         type="button"
         aria-label={open ? "Close MapBot" : "Open MapBot"}
-        onClick={() => setOpen((value) => !value)}
-        className="flex h-14 w-14 items-center justify-center rounded-full shadow-[0_10px_25px_rgba(66,21,75,0.25)] transition-transform hover:scale-105"
+        onClick={() => {
+          setOpen((value) => !value);
+          dismissTooltip();
+        }}
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full shadow-[0_10px_25px_rgba(66,21,75,0.25)] transition-transform hover:scale-105 ${!open ? "mapbot-pulse" : ""}`}
         style={{ background: THEME.accent, color: THEME.onPrimary }}
       >
         {open ? <CloseIcon /> : <ChatIcon />}
       </button>
+
+      <style jsx>{`
+        @keyframes mapbot-pulse-ring {
+          0% { box-shadow: 0 0 0 0 rgba(255, 141, 39, 0.55); }
+          70% { box-shadow: 0 0 0 14px rgba(255, 141, 39, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(255, 141, 39, 0); }
+        }
+        .mapbot-pulse {
+          animation: mapbot-pulse-ring 2.4s ease-out infinite;
+        }
+        @keyframes mapbot-tooltip-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .mapbot-tooltip-in {
+          animation: mapbot-tooltip-in 0.25s ease-out;
+        }
+        @keyframes mapbot-dot-bounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
+        .mapbot-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 9999px;
+          background: currentColor;
+          display: inline-block;
+          animation: mapbot-dot-bounce 1.1s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
