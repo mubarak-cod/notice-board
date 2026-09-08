@@ -6,6 +6,7 @@ import HowItWorks from "@/components/HowItWorks";
 import WhyDigital from "@/components/Whydigital";
 import SubscribeSection from "@/components/Subscribesection";
 import SiteFooter from "@/components/Sitefooter";
+import ChatWidget from "@/components/ChatWidget";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,6 +22,7 @@ export default function Home() {
       <WhyDigital />
       <SubscribeSection />
       <SiteFooter />
+      <ChatWidget />
     </div>
   );
 }
