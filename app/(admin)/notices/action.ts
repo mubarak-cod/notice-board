@@ -29,26 +29,52 @@ async function notifySubscribers(
   supabase: Awaited<ReturnType<typeof createClient>>,
   notice: { title: string; slug: string; body: string }
 ) {
-  const { data: subs } = await supabase
+  console.log("[notifySubscribers] called with notice:", {
+    title: notice.title,
+    slug: notice.slug,
+    bodyLength: notice.body.length,
+  });
+
+  const { data: subs, error: subsError } = await supabase
     .from("subscriptions")
     .select("email")
     .is("unsubscribed_at", null);
 
-  if (!subs || subs.length === 0) return;
+  console.log("[notifySubscribers] subscriptions query result:", {
+    error: subsError,
+    count: subs?.length ?? 0,
+    data: subs,
+  });
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (subsError) {
+    console.error("[notifySubscribers] subscriptions query error:", subsError);
+    throw subsError;
+  }
 
-  if (!siteUrl) {
-    console.warn("NEXT_PUBLIC_SITE_URL is not set; skipping notice email links.");
+  if (!subs || subs.length === 0) {
+    console.log("[notifySubscribers] no active subscribers found; exiting without sending.");
     return;
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  if (!process.env.NEXT_PUBLIC_SITE_URL) {
+    console.warn("NEXT_PUBLIC_SITE_URL is not set; using localhost fallback for notice links, but continuing to send the email.");
   }
 
   const noticeUrl = `${siteUrl}/notices/${notice.slug}`;
   const snippet = notice.body.trim().slice(0, 140);
 
+  console.log("[notifySubscribers] sending to subscribers:", subs.map((s) => s.email));
+
   await Promise.all(
-    subs.map((s: { email: string }) =>
-      sendEmail({
+    subs.map(async (s: { email: string }) => {
+      console.log("[notifySubscribers] BEFORE sendEmail for:", s.email, {
+        noticeTitle: notice.title,
+        noticeSlug: notice.slug,
+      });
+
+      const result = await sendEmail({
         to: s.email,
         subject: `New notice: ${notice.title}`,
         html: `
@@ -56,8 +82,13 @@ async function notifySubscribers(
           <p style="color:#555;">${snippet}${notice.body.length > 140 ? "..." : ""}</p>
           <p><a href="${noticeUrl}">Read the full notice →</a></p>
         `,
-      })
-    )
+      });
+
+      console.log("[notifySubscribers] AFTER sendEmail for:", s.email, {
+        result,
+        status: result === true ? "success" : result === false ? "failed" : "no-return-value",
+      });
+    })
   );
 }
 

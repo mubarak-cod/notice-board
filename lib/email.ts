@@ -1,6 +1,7 @@
-// Thin wrapper around Resend's API. Server-side only — never import
-// this from a "use client" file, since RESEND_API_KEY must stay secret.
+import nodemailer from "nodemailer";
 
+// Server-side only — never import this from a "use client" file, since Gmail
+// credentials and app passwords must stay on the server.
 export async function sendEmail({
   to,
   subject,
@@ -9,26 +10,36 @@ export async function sendEmail({
   to: string;
   subject: string;
   html: string;
-}) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.NOTICE_FROM_EMAIL || "onboarding@resend.dev";
+}): Promise<boolean> {
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
 
-  if (!apiKey) {
-    console.warn("RESEND_API_KEY is not set; skipping email send.");
-    return;
+  if (!gmailUser || !gmailAppPassword) {
+    console.warn("GMAIL_USER or GMAIL_APP_PASSWORD is not set; skipping email send.");
+    return false;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailAppPassword,
     },
-    body: JSON.stringify({ from: fromEmail, to, subject, html }),
   });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error(`Resend send to ${to} failed:`, errText);
+  try {
+    const info = await transporter.sendMail({
+      from: `"MAPOLY CS Notices" <${gmailUser}>`,
+      to,
+      subject,
+      html,
+    });
+
+    console.log(`Email sent via Gmail SMTP to ${to}: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Gmail SMTP send to ${to} failed:`, message);
+    return false;
   }
 }

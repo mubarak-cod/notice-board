@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { THEME, DEPARTMENT_NAME } from "@/lib/Theme";
-import { supabase } from "@/lib/supabase/client";
+import { subscribeToNotices } from "@/app/actions/subscribe";
 
 const SUBSCRIBE_MODAL_STORAGE_KEY = "noticeboard-subscribe-modal";
 
@@ -58,38 +58,33 @@ export default function SubscribeSection() {
     e.preventDefault();
     if (!email) return;
 
-    if (!supabase) {
-      setErrorMsg("Subscriptions are not configured for this environment.");
-      return;
-    }
-
     setSubmitting(true);
     setErrorMsg(null);
 
-    const { error } = await supabase.from("subscriptions").insert({ email });
+    const result = await subscribeToNotices(email);
 
     setSubmitting(false);
 
-    if (error) {
-      if (error.code === "23505") {
-        setSubmitted(true);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(SUBSCRIBE_MODAL_STORAGE_KEY, "subscribed");
-        }
-        setShowModal(false);
-        return;
+    if (result.status === "success") {
+      setSubmitted(true);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SUBSCRIBE_MODAL_STORAGE_KEY, "subscribed");
       }
-
-      console.error("Subscribe failed:", error);
-      setErrorMsg("Something went wrong. Try again in a moment.");
+      setShowModal(false);
       return;
     }
 
-    setSubmitted(true);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SUBSCRIBE_MODAL_STORAGE_KEY, "subscribed");
+    if (result.status === "already-subscribed") {
+      setSubmitted(true);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SUBSCRIBE_MODAL_STORAGE_KEY, "subscribed");
+      }
+      setShowModal(false);
+      return;
     }
-    setShowModal(false);
+
+    console.error("Subscribe failed:", result.message);
+    setErrorMsg(result.message);
   };
 
   const dismissModal = () => {
